@@ -34,7 +34,7 @@ public class MainActivity extends Activity implements IJsHandler {
         addClient();
     }
 
-    private void addModules(){
+    private void addModules() {
         mDispatcher.register(new NativeModule())
                 .register(new SyncModule())
                 .register(new AsyncModule());
@@ -45,7 +45,7 @@ public class MainActivity extends Activity implements IJsHandler {
         mWv = findViewById(R.id.wv);
         mWv.getSettings().setJavaScriptEnabled(true);
         WebView.setWebContentsDebuggingEnabled(true);
-        mWv.addJavascriptInterface(new AndroidJsObject(mWv), AndroidJsObject.NAME);
+        mWv.addJavascriptInterface(new AndroidJsObject(mWv, this), AndroidJsObject.NAME);
     }
 
     private void loadPage() {
@@ -54,7 +54,7 @@ public class MainActivity extends Activity implements IJsHandler {
     }
 
     private void addClient() {
-        mWv.setWebViewClient(new WebViewClient(){
+        mWv.setWebViewClient(new WebViewClient() {
             @Override
             public boolean shouldOverrideUrlLoading(WebView view, String url) {
                 // 拦截
@@ -82,14 +82,18 @@ public class MainActivity extends Activity implements IJsHandler {
             Utils.runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    if(TextUtils.isEmpty(funName)){
+                    if (TextUtils.isEmpty(funName)) {
                         return;
                     }
                     String js = "javascript:" + funName + "('" + msg + "')";
-                    mWv.evaluateJavascript(js, new ValueCallback<String>(){
+                    mWv.evaluateJavascript(js, new ValueCallback<String>() {
                         @Override
                         public void onReceiveValue(String value) {
-                            Toast.makeText(mWv.getContext(), value, Toast.LENGTH_SHORT).show();
+                            if (TextUtils.isEmpty(value) || TextUtils.equals("null", value)) {
+                                return;
+                            }
+                            String str = "js exe result - " + value;
+                            Toast.makeText(mWv.getContext(), str, Toast.LENGTH_SHORT).show();
                         }
                     });
                 }

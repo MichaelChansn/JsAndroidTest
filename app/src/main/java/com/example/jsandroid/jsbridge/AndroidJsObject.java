@@ -3,7 +3,6 @@ package com.example.jsandroid.jsbridge;
 import android.content.Context;
 import android.text.TextUtils;
 import android.webkit.JavascriptInterface;
-import android.webkit.ValueCallback;
 import android.webkit.WebView;
 import android.widget.Toast;
 
@@ -18,14 +17,14 @@ import org.json.JSONObject;
  * @version v1.0
  * @since 2020/6/28
  */
-public class AndroidJsObject implements IJsHandler {
+public class AndroidJsObject {
     private Context mContext;
-    private WebView mWv;
+    private IJsHandler mHandler;
     public static final String NAME = "android_obj";
 
-    public AndroidJsObject(WebView wv) {
+    public AndroidJsObject(WebView wv, IJsHandler handler) {
         this.mContext = wv.getContext().getApplicationContext();
-        this.mWv = wv;
+        this.mHandler = handler;
     }
 
     @JavascriptInterface
@@ -44,7 +43,7 @@ public class AndroidJsObject implements IJsHandler {
             Utils.runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    callJsFun(callback, "delay 1000ms");
+                    mHandler.callJsFun(callback, "delay 1000ms");
                 }
             }, 1000);
         }
@@ -74,23 +73,4 @@ public class AndroidJsObject implements IJsHandler {
         return ret.toString();
     }
 
-    @Override
-    public void callJsFun(final String funName, final String msg) {
-        if (mWv != null) {
-            // 需要在主线程调用
-            Utils.runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    String js = "javascript:" + funName + "('" + msg + "')";
-                    mWv.evaluateJavascript(js, new ValueCallback<String>() {
-                        @Override
-                        public void onReceiveValue(String value) {
-                            Toast.makeText(mContext, value, Toast.LENGTH_SHORT).show();
-                        }
-                    });
-                }
-            }, 0);
-
-        }
-    }
 }

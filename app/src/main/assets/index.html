@@ -25,10 +25,11 @@
 <ul id="ul">
     <li>Call Android(jsBinding)</li>
     <li>Call Android With Callback(jsBinding)</li>
+    <li>Call Android(overLoadUrl)</li>
     <li>Call Android Native(scheme)</li>
     <li>Call Android Sync(scheme)</li>
     <li>Call Android Async(scheme)</li>
-    <li>Call Android(overLoadUrl)</li>
+
 </ul>
 <br>
 <div id="show"></div>
@@ -57,20 +58,27 @@
                     showMsg(msg);
                     break;
                 case 2:
+                    // 注意，over_load_url为非标准协议头，会被浏览器识别为相对路径，自动拼接baseurl
+                    // 改成overloadurl或over-load-url即可
+                    //param = 'over_load_url://async/test?test=1'
+                    param = 'over-load-url://async/test?test=1'
+                    document.location = param;
+                    break;
+                case 3:
                     param = 'jsandroid://native/test/native/path/go?test=1'
                     ret = prompt(param);
                     msg = 'get from android - ' + JSON.stringify(ret);
                     console.log(msg);
                     showMsg(msg);
                     break;
-                case 3:
+                case 4:
                     param = 'jsandroid://sync/test?test=1'
                     ret = prompt(param);
                     msg = 'get from android - ' + JSON.stringify(ret)
                     console.log(msg);
                     showMsg(msg)
                     break;
-                case 4:
+                case 5:
                     window.asyncFun = function (msg) {
                         console.log(msg);
                         delete window.asyncFun;
@@ -86,13 +94,7 @@
                     showMsg(msg);
                     console.log(msg);
                     break;
-                case 5:
-                    // 注意，over_load_url为非标准协议头，会被浏览器识别为相对路径，自动拼接baseurl
-                    // 改成overloadurl或over-load-url即可
-                    //param = 'over_load_url://async/test?test=1'
-                    param = 'over-load-url://async/test?test=1'
-                    document.location = param;
-                    break;
+
                 default:
                     break;
             }
