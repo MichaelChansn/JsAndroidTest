@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>JsBridge Demo</title>
+</head>
+<style type="text/css">
+    * {
+        margin: 0;
+        padding: 0;
+    }
+
+    ul > li {
+        display: block;
+        text-align: center;
+        list-style: none;
+        background: #ccc;
+        margin: 10px;
+        padding: 8px;
+    }
+
+</style>
+<body>
+
+<ul id="ul">
+    <li>Call Android(jsBinding)</li>
+    <li>Call Android With Callback(jsBinding)</li>
+    <li>Call Android Native(scheme)</li>
+    <li>Call Android Sync(scheme)</li>
+    <li>Call Android Async(scheme)</li>
+    <li>Call Android(overLoadUrl)</li>
+</ul>
+<br>
+<div id="show"></div>
+<script type="text/javascript">
+    var ul = document.getElementById("ul");
+    var li = ul.getElementsByTagName("li");
+    for (var i = 0; i < li.length; i++) {
+        li[i].index = i;
+        li[i].onclick = function () {
+            let param;
+            let ret;
+            let msg;
+            switch (this.index) {
+                case 0:
+                    param = {params: 'call from js'}
+                    ret = window.android_obj.callAndroid(JSON.stringify(param));
+                    msg =  'get from android - ' + JSON.stringify(ret);
+                    console.log(msg);
+                    showMsg(msg);
+                    break;
+                case 1:
+                    param = {params: 'call from js', callback: 'myCallback'}
+                    ret = window.android_obj.callAndroid(JSON.stringify(param));
+                    msg = 'get from android - ' + JSON.stringify(ret);
+                    console.log(msg);
+                    showMsg(msg);
+                    break;
+                case 2:
+                    param = 'jsandroid://native/test/native/path/go?test=1'
+                    ret = prompt(param);
+                    msg = 'get from android - ' + JSON.stringify(ret);
+                    console.log(msg);
+                    showMsg(msg);
+                    break;
+                case 3:
+                    param = 'jsandroid://sync/test?test=1'
+                    ret = prompt(param);
+                    msg = 'get from android - ' + JSON.stringify(ret)
+                    console.log(msg);
+                    showMsg(msg)
+                    break;
+                case 4:
+                    window.asyncFun = function (msg) {
+                        console.log(msg);
+                        delete window.asyncFun;
+                    }
+                    // param = 'jsandroid://async/test?test=1&callback=asyncFun'
+                    // ret = prompt(param);
+
+                    ret = exeCallAndroid('async', 'test/test', {test: 1}, function (msg) {
+                        console.log(msg);
+                        showMsg(msg);
+                    });
+                     msg = 'get from android - ' + JSON.stringify(ret);
+                    showMsg(msg);
+                    console.log(msg);
+                    break;
+                case 5:
+                    // 注意，over_load_url为非标准协议头，会被浏览器识别为相对路径，自动拼接baseurl
+                    // 改成overloadurl或over-load-url即可
+                    //param = 'over_load_url://async/test?test=1'
+                    param = 'over-load-url://async/test?test=1'
+                    document.location = param;
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
+    window.myCallback = function (msg) {
+        console.log(msg);
+        showMsg(msg);
+        return 'from js';
+    }
+
+    function showMsg(msg) {
+        var div = document.getElementById("show");
+        div.innerText = msg;
+    }
+    let exeCallAndroid = function (module, subPath, params, callback) {
+        let prefix = 'jsandroid://';
+        let scheme = prefix + module + '/' + subPath;
+        let hasParam = false;
+        if (typeof params === 'string') {
+            scheme = scheme + '?params=' + encodeURI(JSON.stringify(params));
+            hasParam = true;
+        } else if (typeof params === 'object') {
+            scheme = scheme + '?params=' + encodeURI(JSON.stringify(params));
+            hasParam = true;
+        }
+        if (callback && typeof callback === 'function') {
+            let suffix = Math.floor((Math.random() * 100) + 1);
+            let funName = 'js_on_callback_' + suffix;
+            window[funName] = function (msg) {
+                callback(msg);
+                delete window[funName];
+            };
+
+            scheme = scheme + (hasParam ? '&callback=' : '?callback=') + funName;
+        }
+
+        return prompt(scheme);
+    }
+
+</script>
+</body>
+</html>
